@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Products, Navbar } from "./components";
+import { Products, Navbar, Cart } from "./components";
 import { commerce } from "./lib/commerce";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 const App = () => {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState({});
@@ -9,17 +10,31 @@ const App = () => {
     setProducts(data);
   };
   const fetchCart = async () => {
-    const response = await commerce.cart.retrieve();
+    setCart(await commerce.cart.retrieve());
+  };
+  const handleAddToCart = async (productId, quantity) => {
+    const item = commerce.cart.add(productId, quantity);
+    setCart(item.cart);
   };
   useEffect(() => {
     fetchProducts();
+    fetchCart();
   }, []);
-  console.log(products);
+  console.log(cart);
   return (
+    <Router>
     <div>
-      <Navbar />
-      <Products products={products} />
+      <Navbar totalItems={cart.total_items} />
+      <Switch>
+        <Route exact path='/'>
+      <Products products={products} onAddToCart={handleAddToCart} />
+      </Route>
+      <Route exact path='/cart'>
+      <Cart cart={cart} />
+      </Route>
+      </Switch>
     </div>
+    </Router>
   );
 };
 
